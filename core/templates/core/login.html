@@ -1,0 +1,73 @@
+{% extends 'core/base.html' %}
+{% block title %}Login — EventPark{% endblock %}
+{% block content %}
+
+<div style="max-width: 400px; margin: 4rem auto; padding: 0 1.5rem;">
+  <div style="text-align: center; margin-bottom: 3rem;">
+    <h1 style="font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; margin-bottom: 0.5rem;">Welcome Back</h1>
+    <p style="color: var(--muted);">Sign in to manage your events and venues</p>
+  </div>
+
+  {% if messages %}
+    <div style="margin-bottom: 1.5rem;">
+      {% for message in messages %}
+        <div class="{% if message.tags %}{{ message.tags }}{% endif %}" style="padding: 0.75rem 1rem; border-radius: 2px; margin-bottom: 0.75rem; background: {% if 'error' in message.tags %}#fee{% else %}#efe{% endif %}; color: {% if 'error' in message.tags %}#c33{% else %}#3a3{% endif %}; border-left: 3px solid {% if 'error' in message.tags %}#e63c1e{% else %}#1a7a4a{% endif %};">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <form method="post" style="background: var(--card); padding: 2rem; border-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid var(--border);">
+    {% csrf_token %}
+
+    <div style="margin-bottom: 1.5rem;">
+      <label for="username" style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--ink);">Username</label>
+      <input 
+        type="text" 
+        id="username" 
+        name="username" 
+        placeholder="Enter your username"
+        required
+        style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border); border-radius: 2px; font-size: 1rem; font-family: 'DM Sans', sans-serif; transition: border-color 0.15s, box-shadow 0.15s;"
+        onfocus="this.style.borderColor='var(--accent)'; this.style.boxShadow='0 0 0 3px rgba(230,60,30,0.1)'"
+        onblur="this.style.borderColor='var(--border)'; this.style.boxShadow='none'"
+      />
+    </div>
+
+    <div style="margin-bottom: 2rem;">
+      <label for="password" style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--ink);">Password</label>
+      <input 
+        type="password" 
+        id="password" 
+        name="password" 
+        placeholder="Enter your password"
+        required
+        style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border); border-radius: 2px; font-size: 1rem; font-family: 'DM Sans', sans-serif; transition: border-color 0.15s, box-shadow 0.15s;"
+        onfocus="this.style.borderColor='var(--accent)'; this.style.boxShadow='0 0 0 3px rgba(230,60,30,0.1)'"
+        onblur="this.style.borderColor='var(--border)'; this.style.boxShadow='none'"
+      />
+    </div>
+
+    <button 
+      type="submit" 
+      style="width: 100%; padding: 0.875rem 1rem; background: var(--accent); color: white; border: none; border-radius: 2px; font-size: 0.95rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; cursor: pointer; transition: background 0.15s, transform 0.15s; font-family: 'DM Sans', sans-serif;"
+      onmouseover="this.style.background='#d42f18'; this.style.transform='translateY(-1px)'"
+      onmouseout="this.style.background='var(--accent)'; this.style.transform='translateY(0)'"
+    >
+      Sign In
+    </button>
+  </form>
+
+  <div style="text-align: center; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border);">
+    <p style="color: var(--muted); margin-bottom: 1rem;">Don't have an account?</p>
+    <a href="{% url 'register' %}" style="display: inline-block; padding: 0.75rem 1.5rem; background: var(--accent2); color: white; text-decoration: none; border-radius: 2px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; font-size: 0.875rem; transition: background 0.15s, transform 0.15s;"
+      onmouseover="this.style.background='#1541cc'; this.style.transform='translateY(-1px)'"
+      onmouseout="this.style.background='var(--accent2)'; this.style.transform='translateY(0)'"
+    >
+      Create Account
+    </a>
+  </div>
+</div>
+
+{% endblock %}

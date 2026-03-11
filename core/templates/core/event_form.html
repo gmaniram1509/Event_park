@@ -1,0 +1,185 @@
+{% extends 'core/base.html' %}
+{% block title %}{{ form_title }} — EventPark{% endblock %}
+{% block content %}
+
+<div style="margin-bottom: 1.5rem;">
+  <a href="{% if event %}{% url 'event_detail' event.id %}{% else %}{% url 'event_list' %}{% endif %}" 
+     style="font-size: 0.85rem; color: var(--muted); text-decoration: none;">← Back</a>
+</div>
+
+<div class="form-page">
+  <div class="page-header">
+    <h1>{{ form_title }}</h1>
+  </div>
+
+  <form method="post">
+    {% csrf_token %}
+
+    <!-- Basic Info -->
+    <div class="form-card">
+      <div class="form-section-title">Basic Information</div>
+      <div class="form-group">
+        <label for="title">Event Title *</label>
+        <input type="text" id="title" name="title" class="form-control" required
+               value="{{ event.title|default:'' }}" placeholder="e.g. Summer Music Festival 2026">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="category">Category *</label>
+          <select id="category" name="category" class="form-control">
+            {% for cat in categories %}
+            <option value="{{ cat }}" {% if event.category == cat or not event and cat == 'other' %}selected{% endif %}>{{ cat|title }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% if action == 'edit' %}
+        <div class="form-group">
+          <label for="status">Status</label>
+          <select id="status" name="status" class="form-control">
+            {% for s in statuses %}
+            <option value="{{ s }}" {% if event.status == s %}selected{% endif %}>{{ s|title }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% endif %}
+      </div>
+      <div class="form-group">
+        <label for="description">Description</label>
+        <textarea id="description" name="description" class="form-control" placeholder="Describe the event…">{{ event.description|default:'' }}</textarea>
+      </div>
+      <div class="form-group">
+        <label for="tags">Tags (comma-separated)</label>
+        <input type="text" id="tags" name="tags" class="form-control"
+               value="{{ event.tags|default:'' }}" placeholder="e.g. live-music, outdoor, family-friendly">
+      </div>
+    </div>
+
+    <!-- Venue & Date -->
+    <div class="form-card">
+      <div class="form-section-title">Venue & Date</div>
+      <div class="form-group">
+        <label for="venue_id">Venue *</label>
+        <select id="venue_id" name="venue_id" class="form-control" required>
+          <option value="">— Select a venue —</option>
+          {% for venue in venues %}
+          <option value="{{ venue.id }}" {% if event.venue_id == venue.id %}selected{% endif %}>
+            {{ venue.name }} — {{ venue.city }}
+          </option>
+          {% endfor %}
+        </select>
+        {% if not venues %}
+        <div style="font-size: 0.8rem; color: var(--accent); margin-top: 0.4rem;">
+          ⚠ No venues available. <a href="{% url 'venue_create' %}" style="color: var(--accent2);">Create one first →</a>
+        </div>
+        {% endif %}
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="start_date">Start Date & Time *</label>
+          <input type="datetime-local" id="start_date" name="start_date" class="form-control" required
+                 value="{{ event.start_date|slice:':16'|default:'' }}">
+        </div>
+        <div class="form-group">
+          <label for="end_date">End Date & Time</label>
+          <input type="datetime-local" id="end_date" name="end_date" class="form-control"
+                 value="{{ event.end_date|slice:':16'|default:'' }}">
+        </div>
+      </div>
+      <div class="form-check" style="margin-top: 0.5rem;">
+        <input type="checkbox" id="is_outdoor" name="is_outdoor" {% if event.is_outdoor %}checked{% endif %}>
+        <label for="is_outdoor">Outdoor Event</label>
+      </div>
+    </div>
+
+    <!-- Tickets & Pricing -->
+    <div class="form-card">
+      <div class="form-section-title">Tickets & Pricing</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="max_capacity">Max Capacity</label>
+          <input type="number" id="max_capacity" name="max_capacity" class="form-control" min="1"
+                 value="{{ event.max_capacity|default:'' }}" placeholder="e.g. 500">
+        </div>
+        <div class="form-group">
+          <label for="tickets_sold">Tickets Sold</label>
+          <input type="number" id="tickets_sold" name="tickets_sold" class="form-control" min="0"
+                 value="{{ event.tickets_sold|default:'0' }}">
+        </div>
+      </div>
+      <div class="form-check" style="margin-bottom: 1rem;">
+        <input type="checkbox" id="is_free" name="is_free" {% if event.is_free %}checked{% endif %} onchange="togglePricing(this)">
+        <label for="is_free">Free Event</label>
+      </div>
+      <div id="pricing-fields">
+        <div class="form-row-3">
+          <div class="form-group">
+            <label for="price_min">Min Price</label>
+            <input type="number" id="price_min" name="price_min" class="form-control" min="0" step="0.01"
+                   value="{{ event.price_min|default:'' }}" placeholder="0.00">
+          </div>
+          <div class="form-group">
+            <label for="price_max">Max Price</label>
+            <input type="number" id="price_max" name="price_max" class="form-control" min="0" step="0.01"
+                   value="{{ event.price_max|default:'' }}" placeholder="0.00">
+          </div>
+          <div class="form-group">
+            <label for="currency">Currency</label>
+            <select id="currency" name="currency" class="form-control">
+              <option value="EUR" {% if event.currency == 'EUR' or not event %}selected{% endif %}>EUR €</option>
+              <option value="USD" {% if event.currency == 'USD' %}selected{% endif %}>USD $</option>
+              <option value="GBP" {% if event.currency == 'GBP' %}selected{% endif %}>GBP £</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="ticket_url">Ticket URL</label>
+        <input type="url" id="ticket_url" name="ticket_url" class="form-control"
+               value="{{ event.ticket_url|default:'' }}" placeholder="https://tickets.example.com/…">
+      </div>
+    </div>
+
+    <!-- Organizer & Media -->
+    <div class="form-card">
+      <div class="form-section-title">Organizer & Media</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="organizer_name">Organizer Name</label>
+          <input type="text" id="organizer_name" name="organizer_name" class="form-control"
+                 value="{{ event.organizer_name|default:'' }}">
+        </div>
+        <div class="form-group">
+          <label for="organizer_email">Organizer Email</label>
+          <input type="email" id="organizer_email" name="organizer_email" class="form-control"
+                 value="{{ event.organizer_email|default:'' }}">
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="image_url">Event Image URL</label>
+        <input type="url" id="image_url" name="image_url" class="form-control"
+               value="{{ event.image_url|default:'' }}" placeholder="https://…/image.jpg">
+      </div>
+    </div>
+
+    <!-- Submit -->
+    <div style="display: flex; gap: 0.75rem;">
+      <button type="submit" class="btn btn-primary">
+        {% if action == 'edit' %}💾 Save Changes{% else %}🚀 Create Event{% endif %}
+      </button>
+      <a href="{% if event %}{% url 'event_detail' event.id %}{% else %}{% url 'event_list' %}{% endif %}" class="btn btn-secondary">Cancel</a>
+    </div>
+  </form>
+</div>
+
+{% endblock %}
+{% block extra_js %}
+<script>
+function togglePricing(cb) {
+  document.getElementById('pricing-fields').style.opacity = cb.checked ? '0.4' : '1';
+  document.getElementById('pricing-fields').style.pointerEvents = cb.checked ? 'none' : 'auto';
+}
+// Init
+const isFree = document.getElementById('is_free');
+if (isFree) togglePricing(isFree);
+</script>
+{% endblock %}

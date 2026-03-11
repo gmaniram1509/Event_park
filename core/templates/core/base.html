@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}EventPark{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink: #0d0d0f;
+      --paper: #f5f3ee;
+      --cream: #ede9e0;
+      --accent: #e63c1e;
+      --accent2: #1e4fe6;
+      --muted: #6b6860;
+      --border: #d5d0c5;
+      --green: #1a7a4a;
+      --card: #ffffff;
+      --radius: 2px;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+      min-height: 100vh;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    /* ── NAV ── */
+    nav {
+      background: var(--ink);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      gap: 0;
+      height: 56px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 3px solid var(--accent);
+    }
+
+    .nav-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.25rem;
+      color: #fff;
+      text-decoration: none;
+      letter-spacing: -0.02em;
+      margin-right: 2rem;
+    }
+    .nav-logo span { color: var(--accent); }
+
+    .nav-links { display: flex; align-items: center; gap: 0; flex: 1; }
+    .nav-links a {
+      color: rgba(255,255,255,0.65);
+      text-decoration: none;
+      padding: 0 1rem;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      font-size: 0.875rem;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      transition: color 0.15s, background 0.15s;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -3px;
+    }
+    .nav-links a:hover, .nav-links a.active {
+      color: #fff;
+      border-bottom-color: var(--accent);
+    }
+
+    .nav-actions { display: flex; gap: 0.5rem; }
+    .btn-nav {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 0.4rem 1rem;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      cursor: pointer;
+      text-decoration: none;
+      border-radius: var(--radius);
+      transition: opacity 0.15s;
+    }
+    .btn-nav:hover { opacity: 0.85; }
+    .btn-nav.secondary {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.3);
+      color: rgba(255,255,255,0.8);
+    }
+    .btn-nav.secondary:hover { border-color: white; color: white; }
+
+    /* ── MAIN LAYOUT ── */
+    .page-wrap { max-width: 1280px; margin: 0 auto; padding: 2rem; }
+
+    /* ── MESSAGES ── */
+    .messages { list-style: none; margin-bottom: 1.5rem; }
+    .messages li {
+      padding: 0.75rem 1rem;
+      border-left: 4px solid;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+      background: white;
+    }
+    .messages .success { border-color: var(--green); color: var(--green); }
+    .messages .error { border-color: var(--accent); color: var(--accent); }
+    .messages .warning { border-color: #d97706; color: #d97706; }
+
+    /* ── BUTTONS ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.55rem 1.25rem;
+      border: none;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.875rem;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      text-decoration: none;
+      border-radius: var(--radius);
+      transition: all 0.15s;
+    }
+    .btn-primary { background: var(--accent); color: white; }
+    .btn-primary:hover { background: #c9341a; color: white; }
+    .btn-secondary { background: white; color: var(--ink); border: 1px solid var(--border); }
+    .btn-secondary:hover { border-color: var(--ink); }
+    .btn-blue { background: var(--accent2); color: white; }
+    .btn-blue:hover { background: #1a41c9; color: white; }
+    .btn-danger { background: #fee2e2; color: var(--accent); border: 1px solid #fca5a5; }
+    .btn-danger:hover { background: var(--accent); color: white; }
+    .btn-sm { padding: 0.35rem 0.75rem; font-size: 0.8rem; }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+
+    /* ── PAGE HEADER ── */
+    .page-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 2rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .page-header h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+    }
+    .page-header p { color: var(--muted); margin-top: 0.25rem; font-size: 0.9rem; }
+
+    /* ── GRID ── */
+    .grid-3 { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.25rem; }
+    .grid-4 { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+
+    /* ── BADGES ── */
+    .badge {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border-radius: 1px;
+    }
+    .badge-music { background: #fde68a; color: #78350f; }
+    .badge-sports { background: #bbf7d0; color: #14532d; }
+    .badge-comedy { background: #fed7aa; color: #7c2d12; }
+    .badge-food { background: #fecaca; color: #7f1d1d; }
+    .badge-arts { background: #e9d5ff; color: #4c1d95; }
+    .badge-tech { background: #bfdbfe; color: #1e3a5f; }
+    .badge-other { background: var(--cream); color: var(--muted); }
+    .badge-published { background: #bbf7d0; color: #14532d; }
+    .badge-draft { background: #e5e7eb; color: #374151; }
+    .badge-cancelled { background: #fee2e2; color: #991b1b; }
+    .badge-postponed { background: #fed7aa; color: #92400e; }
+    .badge-completed { background: #ddd6fe; color: #4c1d95; }
+    .badge-free { background: #bbf7d0; color: #14532d; }
+
+    /* ── FORMS ── */
+    .form-group { margin-bottom: 1.25rem; }
+    .form-group label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+    }
+    .form-control {
+      width: 100%;
+      padding: 0.6rem 0.875rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      background: white;
+      color: var(--ink);
+      transition: border-color 0.15s;
+      outline: none;
+    }
+    .form-control:focus { border-color: var(--accent2); box-shadow: 0 0 0 3px rgba(30,79,230,0.1); }
+    textarea.form-control { min-height: 100px; resize: vertical; }
+
+    .form-check { display: flex; align-items: center; gap: 0.5rem; }
+    .form-check input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--accent); }
+    .form-check label { font-size: 0.9rem; font-weight: 400; text-transform: none; letter-spacing: normal; color: var(--ink); margin-bottom: 0; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+
+    /* ── SEARCH BAR ── */
+    .search-bar {
+      display: flex;
+      gap: 0.5rem;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.4rem;
+      margin-bottom: 1.5rem;
+    }
+    .search-bar input {
+      flex: 1;
+      border: none;
+      outline: none;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem;
+      padding: 0.3rem 0.5rem;
+      background: transparent;
+    }
+    .search-bar button {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 0.4rem 1rem;
+      cursor: pointer;
+      font-size: 0.85rem;
+      border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    /* ── FILTER ROW ── */
+    .filter-row {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+      align-items: center;
+    }
+    .filter-row select {
+      border: 1px solid var(--border);
+      background: white;
+      padding: 0.35rem 0.75rem;
+      border-radius: var(--radius);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      cursor: pointer;
+      outline: none;
+    }
+    .filter-row select:focus { border-color: var(--accent2); }
+    .filter-tag {
+      background: var(--ink);
+      color: white;
+      padding: 0.25rem 0.75rem;
+      border-radius: 1px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    /* ── PAGINATION ── */
+    .pagination {
+      display: flex;
+      gap: 0.35rem;
+      justify-content: center;
+      margin-top: 2.5rem;
+    }
+    .pagination a, .pagination span {
+      padding: 0.4rem 0.85rem;
+      border: 1px solid var(--border);
+      text-decoration: none;
+      font-size: 0.85rem;
+      color: var(--ink);
+      border-radius: var(--radius);
+      transition: all 0.15s;
+    }
+    .pagination a:hover { background: var(--ink); color: white; border-color: var(--ink); }
+    .pagination .current { background: var(--accent); color: white; border-color: var(--accent); }
+
+    /* ── STAT BOX ── */
+    .stat { text-align: center; }
+    .stat-value {
+      font-family: 'Syne', sans-serif;
+      font-size: 2rem;
+      font-weight: 800;
+      line-height: 1;
+      color: var(--ink);
+    }
+    .stat-label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.07em; margin-top: 0.25rem; }
+
+    /* ── CROWD BAR ── */
+    .crowd-bar-wrap { background: var(--cream); border-radius: 2px; height: 8px; margin: 0.5rem 0; }
+    .crowd-bar {
+      height: 100%;
+      border-radius: 2px;
+      background: var(--accent);
+      transition: width 0.6s ease;
+    }
+    .crowd-bar.low { background: var(--green); }
+    .crowd-bar.medium { background: #d97706; }
+    .crowd-bar.high { background: var(--accent); }
+
+    /* ── EVENT CARD ── */
+    .event-card { display: flex; flex-direction: column; }
+    .event-card-img {
+      height: 160px;
+      background: linear-gradient(135deg, var(--ink) 0%, #2a2a3e 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    .event-card-img img { width: 100%; height: 100%; object-fit: cover; }
+    .event-card-img .cat-badge {
+      position: absolute;
+      top: 0.75rem;
+      left: 0.75rem;
+    }
+    .event-card-body { padding: 1rem; flex: 1; display: flex; flex-direction: column; }
+    .event-card-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      line-height: 1.3;
+      margin-bottom: 0.5rem;
+    }
+    .event-card-title a { color: var(--ink); text-decoration: none; }
+    .event-card-title a:hover { color: var(--accent); }
+    .event-meta { font-size: 0.8rem; color: var(--muted); margin-bottom: 0.25rem; }
+    .event-card-footer {
+      margin-top: auto;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 0.75rem;
+    }
+    .price-tag { font-weight: 600; font-size: 0.9rem; color: var(--accent); }
+    .price-tag.free { color: var(--green); }
+
+    /* ── VENUE CARD ── */
+    .venue-card-body { padding: 1rem; }
+    .venue-card-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      margin-bottom: 0.25rem;
+    }
+    .venue-card-title a { color: var(--ink); text-decoration: none; }
+    .venue-card-title a:hover { color: var(--accent2); }
+
+    /* ── DETAIL LAYOUT ── */
+    .detail-layout { display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; align-items: start; }
+    .detail-header-img {
+      width: 100%;
+      height: 320px;
+      object-fit: cover;
+      border-radius: var(--radius);
+      margin-bottom: 1.5rem;
+    }
+    .detail-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 2.25rem;
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.75rem;
+    }
+    .sidebar-box {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+    .sidebar-box h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .info-row { display: flex; gap: 0.75rem; align-items: flex-start; margin-bottom: 0.75rem; font-size: 0.875rem; }
+    .info-icon { font-size: 1rem; flex-shrink: 0; margin-top: 0.05rem; }
+    .info-label { font-weight: 500; }
+    .info-value { color: var(--muted); }
+
+    /* ── ERROR / EMPTY ── */
+    .error-box {
+      background: #fee2e2;
+      border: 1px solid #fca5a5;
+      color: #991b1b;
+      padding: 1rem 1.25rem;
+      border-radius: var(--radius);
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--muted);
+    }
+    .empty-state .empty-icon { font-size: 3rem; margin-bottom: 1rem; }
+    .empty-state h3 { font-family: 'Syne', sans-serif; font-size: 1.25rem; color: var(--ink); margin-bottom: 0.5rem; }
+
+    /* ── FORM PAGE ── */
+    .form-page { max-width: 760px; }
+    .form-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+    }
+    .form-section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1.5rem 2rem;
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 4rem;
+    }
+    footer strong { color: var(--ink); }
+
+    @media (max-width: 768px) {
+      .detail-layout { grid-template-columns: 1fr; }
+      .form-row, .form-row-3 { grid-template-columns: 1fr; }
+      .grid-2 { grid-template-columns: 1fr; }
+      nav { padding: 0 1rem; }
+      .nav-links { display: none; }
+    }
+  </style>
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<nav>
+  <a href="{% url 'home' %}" class="nav-logo">Event<span>Park</span></a>
+  <div class="nav-links">
+    <a href="{% url 'home' %}" class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}">Home</a>
+    <a href="{% url 'event_list' %}" class="{% if 'event' in request.resolver_match.url_name %}active{% endif %}">Events</a>
+    <a href="{% url 'venue_list' %}" class="{% if 'venue' in request.resolver_match.url_name %}active{% endif %}">Venues</a>
+  </div>
+  <div class="nav-actions">
+    {% if user.is_authenticated %}
+      <span style="color: rgba(255,255,255,0.65); padding: 0 1rem; display: flex; align-items: center; font-size: 0.875rem;">{{ user.first_name|default:user.username }}</span>
+      <a href="{% url 'event_create' %}" class="btn-nav">+ Event</a>
+      <a href="{% url 'venue_create' %}" class="btn-nav secondary">+ Venue</a>
+      <a href="{% url 'logout' %}" class="btn-nav secondary">Logout</a>
+    {% else %}
+      <a href="{% url 'login' %}" class="btn-nav secondary">Login</a>
+      <a href="{% url 'register' %}" class="btn-nav">Register</a>
+    {% endif %}
+  </div>
+</nav>
+
+<main class="page-wrap">
+  {% if messages %}
+  <ul class="messages">
+    {% for msg in messages %}
+    <li class="{{ msg.tags }}">{{ msg }}</li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+
+  {% block content %}{% endblock %}
+</main>
+
+<footer>
+  <strong>EventPark</strong> &mdash; Event & Venue Management Platform &middot; API: localhost:8001
+</footer>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

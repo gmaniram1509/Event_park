@@ -1,0 +1,432 @@
+{% extends 'core/base.html' %}
+{% block title %}{{ event.title|default:"Event" }} — EventPark{% endblock %}
+{% block content %}
+
+{% if error %}
+<div class="error-box">⚠ {{ error }}</div>
+<a href="{% url 'event_list' %}" class="btn btn-secondary">← Back to Events</a>
+{% elif event %}
+
+<div style="margin-bottom: 1.5rem;">
+  <a href="{% url 'event_list' %}" style="font-size: 0.85rem; color: var(--muted); text-decoration: none;">← Events</a>
+</div>
+
+<div class="detail-layout">
+  <!-- MAIN CONTENT -->
+  <div>
+    {% if event.image_url %}
+    <img src="{{ event.image_url }}" alt="{{ event.title }}" class="detail-header-img" onerror="this.style.display='none'">
+    {% endif %}
+
+    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem;">
+      <span class="badge badge-{{ event.category }}">{{ event.category|title }}</span>
+      <span class="badge badge-{{ event.status }}">{{ event.status }}</span>
+      {% if event.is_free %}<span class="badge badge-free">Free Entry</span>{% endif %}
+      {% if event.is_outdoor %}<span class="badge" style="background: #d1fae5; color: #064e3b;">🌿 Outdoor</span>{% endif %}
+    </div>
+
+    <h1 class="detail-title">{{ event.title }}</h1>
+
+    {% if event.description %}
+    <div style="font-size: 0.95rem; line-height: 1.75; color: var(--muted); margin-bottom: 1.5rem; white-space: pre-line;">{{ event.description }}</div>
+    {% endif %}
+
+    {% if tags %}
+    <div style="margin-bottom: 1.5rem;">
+      {% for tag in tags %}
+      <span style="display: inline-block; background: var(--cream); border: 1px solid var(--border); padding: 0.2rem 0.65rem; border-radius: 1px; font-size: 0.78rem; margin: 0.2rem 0.2rem 0.2rem 0;">#{{ tag }}</span>
+      {%endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Crowd Estimate -->
+    {% if crowd %}
+    <div class="sidebar-box">
+      <h3>Crowd Estimate</h3>
+      <div style="display: flex; gap: 2rem; margin-bottom: 1rem; flex-wrap: wrap;">
+        <div class="stat">
+          <div class="stat-value">{{ crowd.tickets_sold }}</div>
+          <div class="stat-label">Tickets Sold</div>
+        </div>
+        {% if crowd.max_capacity %}
+        <div class="stat">
+          <div class="stat-value">{{ crowd.max_capacity }}</div>
+          <div class="stat-label">Max Capacity</div>
+        </div>
+        {% endif %}
+        <div class="stat">
+          <div class="stat-value" style="color: var(--accent);">{{ crowd.crowd_percentage|floatformat:0 }}%</div>
+          <div class="stat-label">Filled</div>
+        </div>
+      </div>
+      <div class="crowd-bar-wrap" style="height: 12px;">
+        <div class="crowd-bar {% if crowd.crowd_percentage < 40 %}low{% elif crowd.crowd_percentage < 75 %}medium{% else %}high{% endif %}"
+             style="width: {{ crowd.crowd_percentage|floatformat:0 }}%;"></div>
+      </div>
+      <div style="display: flex; justify-content: space-between; margin-top: 0.75rem; font-size: 0.85rem;">
+        <span>Level: <strong>{{ crowd.crowd_level|title }}</strong></span>
+        <span style="color: var(--muted);">Parking: {{ crowd.estimated_parking_demand }}</span>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Actions -->
+    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1.5rem;">
+      <a href="{% url 'event_edit' event.id %}" class="btn btn-secondary">✏ Edit Event</a>
+      {% if event.ticket_url %}
+      <a href="{{ event.ticket_url }}" target="_blank" class="btn btn-primary">🎟 Get Tickets</a>
+      {% endif %}
+      <form method="post" action="{% url 'event_delete' event.id %}" style="display:inline;" onsubmit="return confirm('Delete this event?');">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger btn-sm">🗑 Delete</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div>
+
+    <!-- Date & Time -->
+    <div class="sidebar-box">
+      <h3>Date & Time</h3>
+      <div class="info-row">
+        <span class="info-icon">📅</span>
+        <div>
+          <div class="info-label">{{ event.start_date|slice:":10" }}</div>
+          <div class="info-value">{{ event.start_date|slice:"11:16" }}</div>
+        </div>
+      </div>
+      {% if event.end_date %}
+      <div class="info-row">
+        <span class="info-icon">🏁</span>
+        <div>
+          <div class="info-label">{{ event.end_date|slice:":10" }}</div>
+          <div class="info-value">{{ event.end_date|slice:"11:16" }}</div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Venue -->
+    {% if event.venue %}
+    <div class="sidebar-box">
+      <h3>Venue</h3>
+      <div class="info-row">
+        <span class="info-icon">🏟</span>
+        <div>
+          <div class="info-label">
+            <a href="{% url 'venue_detail' event.venue.id %}" style="color: var(--accent2);">{{ event.venue.name }}</a>
+          </div>
+          <div class="info-value">{{ event.venue.address }}</div>
+          <div class="info-value">{{ event.venue.city }}, {{ event.venue.country }}</div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- ═══════════════════════════════════════════════
+         GOOGLE MAP — added between Venue and Pricing
+         Only shows if venue has lat/lng coordinates
+    ════════════════════════════════════════════════ -->
+    {% if event.venue.latitude and event.venue.longitude %}
+    <div class="sidebar-box" style="padding: 0; overflow: hidden;">
+
+      <!-- Header -->
+      <div style="padding: 0.85rem 1rem; border-bottom: 1px solid var(--border);">
+        <h3 style="margin: 0 0 0.15rem 0;">📍 Venue Map</h3>
+        <div style="font-size: 0.78rem; color: var(--muted);">Live traffic · Get directions</div>
+      </div>
+
+      <!-- Map renders here -->
+      <div id="map" style="width: 100%; height: 260px; background: #e2e8f0;"></div>
+
+      <!-- Traffic colour legend -->
+      <div style="display:flex; gap:12px; padding:0.5rem 1rem; background:#fafafa; border-top:1px solid var(--border); flex-wrap:wrap; align-items:center;">
+        <span style="font-size:11px; color:var(--muted); font-weight:600;">Live Traffic:</span>
+        <span style="font-size:11px; color:var(--muted); display:flex; align-items:center; gap:4px;">
+          <span style="width:10px;height:10px;border-radius:50%;background:#22C55E;display:inline-block;"></span>Clear
+        </span>
+        <span style="font-size:11px; color:var(--muted); display:flex; align-items:center; gap:4px;">
+          <span style="width:10px;height:10px;border-radius:50%;background:#F59E0B;display:inline-block;"></span>Slow
+        </span>
+        <span style="font-size:11px; color:var(--muted); display:flex; align-items:center; gap:4px;">
+          <span style="width:10px;height:10px;border-radius:50%;background:#EF4444;display:inline-block;"></span>Heavy
+        </span>
+      </div>
+
+      <!-- Directions panel -->
+      <div style="padding: 0.85rem 1rem; border-top: 1px solid var(--border);">
+
+        <!-- Travel mode buttons -->
+        <div style="display:flex; gap:6px; margin-bottom:0.65rem;">
+          <button class="travel-btn active" onclick="setTravelMode('DRIVING')"   id="mode-DRIVING">🚗 Drive</button>
+          <button class="travel-btn"        onclick="setTravelMode('TRANSIT')"   id="mode-TRANSIT">🚇 Transit</button>
+          <button class="travel-btn"        onclick="setTravelMode('WALKING')"   id="mode-WALKING">🚶 Walk</button>
+          <button class="travel-btn"        onclick="setTravelMode('BICYCLING')" id="mode-BICYCLING">🚲 Cycle</button>
+        </div>
+
+        <!-- Get directions button -->
+        <button id="btn-route" onclick="getRoute()"
+          style="width:100%; background:#0D9488; color:white; border:none; padding:9px; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer; transition:background 0.2s;">
+          📍 Use My Location &amp; Get Directions
+        </button>
+
+        <!-- Error message -->
+        <div id="location-error"
+          style="display:none; margin-top:0.5rem; background:#FEF3C7; border:1px solid #FCD34D; border-radius:6px; padding:8px 10px; font-size:12px; color:#92400E;">
+        </div>
+
+        <!-- Route result summary -->
+        <div id="route-summary"
+          style="display:none; margin-top:0.65rem; background:#F0FDFA; border:1px solid #99F6E4; border-radius:6px; padding:10px 12px; font-size:13px;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+            <span style="color:#64748B;">🕐 Duration</span>
+            <strong id="route-duration" style="color:#0D9488;"></strong>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+            <span style="color:#64748B;">📏 Distance</span>
+            <strong id="route-distance" style="color:#0D9488;"></strong>
+          </div>
+          <div style="display:flex; justify-content:space-between;">
+            <span style="color:#64748B;">🗺 Via</span>
+            <strong id="route-via" style="color:#0D9488; text-align:right; max-width:60%;"></strong>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Travel mode button styles -->
+    <style>
+      .travel-btn {
+        flex: 1;
+        padding: 5px 2px;
+        border: 2px solid var(--border);
+        background: white;
+        border-radius: 6px;
+        font-size: 11px;
+        cursor: pointer;
+        color: var(--muted);
+        transition: all 0.15s;
+      }
+      .travel-btn.active {
+        border-color: #0D9488;
+        background: #F0FDFA;
+        color: #0D9488;
+        font-weight: 700;
+      }
+      .travel-btn:hover:not(.active) {
+        border-color: #94A3B8;
+        color: #0F172A;
+      }
+    </style>
+
+    <!-- Google Maps JavaScript -->
+    <script>
+      // Venue coordinates from your Event API via Django context
+      const VENUE_LAT   = {{ event.venue.latitude }};
+      const VENUE_LNG   = {{ event.venue.longitude }};
+      const VENUE_NAME  = "{{ event.venue.name|escapejs }}";
+      const VENUE_ADDR  = "{{ event.venue.address|escapejs }}, {{ event.venue.city|escapejs }}";
+      const EVENT_TITLE = "{{ event.title|escapejs }}";
+
+      let map, directionsRenderer;
+      let travelMode   = "DRIVING";
+      let userLocation = null;
+
+      // Called automatically by Google Maps once the script loads
+      function initMap() {
+        const venuePos = { lat: VENUE_LAT, lng: VENUE_LNG };
+
+        map = new google.maps.Map(document.getElementById("map"), {
+          center: venuePos,
+          zoom: 15,
+          mapTypeControl: false,
+          streetViewControl: false,
+          fullscreenControl: false,
+        });
+
+        // Live traffic layer
+        new google.maps.TrafficLayer().setMap(map);
+
+        // Venue pin
+        const marker = new google.maps.Marker({
+          position: venuePos,
+          map: map,
+          title: VENUE_NAME,
+          animation: google.maps.Animation.DROP,
+        });
+
+        // Info popup on pin click
+        const infoWindow = new google.maps.InfoWindow({
+          content: `
+            <div style="padding:6px; font-family:Arial; min-width:160px;">
+              <strong style="font-size:13px;">📍 ${VENUE_NAME}</strong><br>
+              <span style="font-size:12px; color:#64748B;">${VENUE_ADDR}</span><br>
+              <span style="font-size:12px;">🎪 ${EVENT_TITLE}</span>
+            </div>`,
+        });
+        marker.addListener("click", () => infoWindow.open(map, marker));
+        infoWindow.open(map, marker);
+
+        // Route line renderer
+        directionsRenderer = new google.maps.DirectionsRenderer({
+          polylineOptions: {
+            strokeColor: "#0D9488",
+            strokeWeight: 5,
+            strokeOpacity: 0.85,
+          },
+        });
+        directionsRenderer.setMap(map);
+      }
+
+      // Switch travel mode
+      function setTravelMode(mode) {
+        travelMode = mode;
+        document.querySelectorAll(".travel-btn").forEach(b => b.classList.remove("active"));
+        document.getElementById("mode-" + mode).classList.add("active");
+        if (userLocation) getRoute();
+      }
+
+      // Get GPS then calculate route
+      function getRoute() {
+        const btn    = document.getElementById("btn-route");
+        const errBox = document.getElementById("location-error");
+        btn.disabled = true;
+        btn.textContent = "📍 Getting your location...";
+        errBox.style.display = "none";
+
+        if (!navigator.geolocation) {
+          showRouteError("Your browser does not support location access.");
+          return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+            calculateRoute();
+          },
+          () => showRouteError("Could not get your location. Please allow location access."),
+          { enableHighAccuracy: true, timeout: 10000 }
+        );
+      }
+
+      // Call Directions API with live traffic
+      function calculateRoute() {
+        const btn = document.getElementById("btn-route");
+        btn.textContent = "🗺 Calculating...";
+
+        new google.maps.DirectionsService().route(
+          {
+            origin:      userLocation,
+            destination: { lat: VENUE_LAT, lng: VENUE_LNG },
+            travelMode:  google.maps.TravelMode[travelMode],
+            drivingOptions: travelMode === "DRIVING" ? {
+              departureTime: new Date(),
+              trafficModel:  google.maps.TrafficModel.BEST_GUESS,
+            } : undefined,
+          },
+          (result, status) => {
+            if (status === "OK") {
+              directionsRenderer.setDirections(result);
+              const leg = result.routes[0].legs[0];
+              document.getElementById("route-duration").textContent =
+                leg.duration_in_traffic
+                  ? leg.duration_in_traffic.text + " (with traffic)"
+                  : leg.duration.text;
+              document.getElementById("route-distance").textContent = leg.distance.text;
+              document.getElementById("route-via").textContent      = result.routes[0].summary || "Best route";
+              document.getElementById("route-summary").style.display = "block";
+            } else {
+              showRouteError("Could not calculate route. Please try again.");
+            }
+            btn.disabled    = false;
+            btn.textContent = "🔄 Recalculate Route";
+          }
+        );
+      }
+
+      function showRouteError(msg) {
+        const errBox = document.getElementById("location-error");
+        errBox.textContent   = "⚠️ " + msg;
+        errBox.style.display = "block";
+        const btn = document.getElementById("btn-route");
+        btn.disabled    = false;
+        btn.textContent = "📍 Try Again";
+      }
+    </script>
+
+    <!-- Load Google Maps — callback=initMap fires once script is ready -->
+    <script
+      src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&callback=initMap"
+      async defer>
+    </script>
+
+    {% endif %}
+    <!-- ═══════════════════════════════════════════════ -->
+
+    <!-- Pricing -->
+    <div class="sidebar-box">
+      <h3>Pricing</h3>
+      {% if event.is_free %}
+      <div style="font-size: 1.5rem; font-weight: 700; color: var(--green); font-family: 'Syne', sans-serif;">Free</div>
+      {% elif event.price_min %}
+      <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent); font-family: 'Syne', sans-serif;">
+        {{ event.currency }} {{ event.price_min|floatformat:2 }}
+        {% if event.price_max and event.price_max != event.price_min %}– {{ event.price_max|floatformat:2 }}{% endif %}
+      </div>
+      {% else %}
+      <div style="color: var(--muted);">Price not set</div>
+      {% endif %}
+    </div>
+
+    <!-- Organizer -->
+    {% if event.organizer_name %}
+    <div class="sidebar-box">
+      <h3>Organizer</h3>
+      <div class="info-row">
+        <span class="info-icon">👤</span>
+        <div>
+          <div class="info-label">{{ event.organizer_name }}</div>
+          {% if event.organizer_email %}
+          <div class="info-value">
+            <a href="mailto:{{ event.organizer_email }}" style="color: var(--accent2);">{{ event.organizer_email }}</a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- Meta -->
+    <div class="sidebar-box">
+      <h3>Info</h3>
+      <div class="info-row">
+        <span class="info-icon">🆔</span>
+        <div><div class="info-value" style="font-size: 0.75rem; word-break: break-all;">{{ event.id }}</div></div>
+      </div>
+      <div class="info-row">
+        <span class="info-icon">🕐</span>
+        <div>
+          <div class="info-label">Created</div>
+          <div class="info-value">{{ event.created_at|slice:":10" }}</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% else %}
+<div class="empty-state">
+  <div class="empty-icon">🎟</div>
+  <h3>Event not found</h3>
+  <a href="{% url 'event_list' %}" class="btn btn-secondary" style="margin-top: 1rem;">← Back</a>
+</div>
+{% endif %}
+
+{% endblock %}
+```
+
+---
+

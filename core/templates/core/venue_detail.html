@@ -1,0 +1,133 @@
+{% extends 'core/base.html' %}
+{% block title %}{{ venue.name|default:"Venue" }} — EventPark{% endblock %}
+{% block content %}
+
+{% if error %}
+<div class="error-box">⚠ {{ error }}</div>
+<a href="{% url 'venue_list' %}" class="btn btn-secondary">← Back</a>
+{% elif venue %}
+
+<div style="margin-bottom: 1.5rem;">
+  <a href="{% url 'venue_list' %}" style="font-size: 0.85rem; color: var(--muted); text-decoration: none;">← Venues</a>
+</div>
+
+<div class="detail-layout">
+  <div>
+    <!-- Header -->
+    <div style="background: linear-gradient(135deg, var(--ink) 0%, #1a1a3e 100%); border-radius: 2px; padding: 2rem; margin-bottom: 1.5rem; color: white;">
+      <div style="font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 0.5rem;">{{ venue.venue_type|title }}</div>
+      <h1 style="font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 0.5rem;">{{ venue.name }}</h1>
+      <div style="color: rgba(255,255,255,0.6); font-size: 0.9rem;">📍 {{ venue.address }}, {{ venue.city }}, {{ venue.country }}</div>
+    </div>
+
+    {% if venue.description %}
+    <div style="font-size: 0.95rem; line-height: 1.75; color: var(--muted); margin-bottom: 1.5rem;">{{ venue.description }}</div>
+    {% endif %}
+
+    <!-- Events at this venue -->
+    <div style="margin-top: 1.5rem;">
+      <h2 style="font-family: 'Syne', sans-serif; font-size: 1.25rem; font-weight: 800; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--border);">Events at this Venue</h2>
+      {% if events %}
+      <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+        {% for event in events %}
+        <div class="card" style="display: flex; align-items: center; padding: 0.875rem 1rem; gap: 1rem;">
+          <div style="flex: 1;">
+            <div style="font-weight: 600; margin-bottom: 0.2rem;">
+              <a href="{% url 'event_detail' event.id %}" style="color: var(--ink); text-decoration: none;">{{ event.title }}</a>
+            </div>
+            <div style="font-size: 0.8rem; color: var(--muted);">📅 {{ event.start_date|slice:":10" }}</div>
+          </div>
+          <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <span class="badge badge-{{ event.category }}">{{ event.category|title }}</span>
+            <span class="badge badge-{{ event.status }}">{{ event.status }}</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div style="color: var(--muted); font-size: 0.9rem; padding: 1rem 0;">No events at this venue yet.</div>
+      {% endif %}
+      <div style="margin-top: 1rem;">
+        <a href="{% url 'event_create' %}" class="btn btn-secondary btn-sm">+ Create Event Here</a>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div style="display: flex; gap: 0.75rem; margin-top: 2rem;">
+      <a href="{% url 'venue_edit' venue.id %}" class="btn btn-secondary">✏ Edit Venue</a>
+      <form method="post" action="{% url 'venue_delete' venue.id %}" style="display:inline;" onsubmit="return confirm('Delete this venue?');">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger btn-sm">🗑 Delete</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div>
+    <div class="sidebar-box">
+      <h3>Details</h3>
+      <div class="info-row">
+        <span class="info-icon">🏷</span>
+        <div><div class="info-label">Type</div><div class="info-value">{{ venue.venue_type|title }}</div></div>
+      </div>
+      {% if venue.capacity %}
+      <div class="info-row">
+        <span class="info-icon">👥</span>
+        <div><div class="info-label">Capacity</div><div class="info-value">{{ venue.capacity }}</div></div>
+      </div>
+      {% endif %}
+      <div class="info-row">
+        <span class="info-icon">📍</span>
+        <div>
+          <div class="info-label">Location</div>
+          <div class="info-value">{{ venue.latitude|floatformat:4 }}, {{ venue.longitude|floatformat:4 }}</div>
+        </div>
+      </div>
+      {% if venue.phone %}
+      <div class="info-row">
+        <span class="info-icon">📞</span>
+        <div><div class="info-label">Phone</div><div class="info-value">{{ venue.phone }}</div></div>
+      </div>
+      {% endif %}
+      {% if venue.website %}
+      <div class="info-row">
+        <span class="info-icon">🌐</span>
+        <div><div class="info-label">Website</div><div class="info-value"><a href="{{ venue.website }}" target="_blank" style="color: var(--accent2);">{{ venue.website|slice:":35" }}…</a></div></div>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="sidebar-box">
+      <h3>Stats</h3>
+      <div class="stat" style="text-align: left;">
+        <div class="stat-value" style="font-size: 2.5rem;">{{ events|length }}</div>
+        <div class="stat-label">Events hosted</div>
+      </div>
+    </div>
+
+    <div class="sidebar-box">
+      <h3>Meta</h3>
+      <div class="info-row">
+        <span class="info-icon">🆔</span>
+        <div><div class="info-value" style="font-size: 0.72rem; word-break: break-all;">{{ venue.id }}</div></div>
+      </div>
+      <div class="info-row">
+        <span class="info-icon">🕐</span>
+        <div>
+          <div class="info-label">Created</div>
+          <div class="info-value">{{ venue.created_at|slice:":10" }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% else %}
+<div class="empty-state">
+  <div class="empty-icon">🏟</div>
+  <h3>Venue not found</h3>
+  <a href="{% url 'venue_list' %}" class="btn btn-secondary" style="margin-top: 1rem;">← Back</a>
+</div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,112 @@
+{% extends 'core/base.html' %}
+{% block title %}{{ form_title }} — EventPark{% endblock %}
+{% block content %}
+
+<div style="margin-bottom: 1.5rem;">
+  <a href="{% if venue %}{% url 'venue_detail' venue.id %}{% else %}{% url 'venue_list' %}{% endif %}"
+     style="font-size: 0.85rem; color: var(--muted); text-decoration: none;">← Back</a>
+</div>
+
+<div class="form-page">
+  <div class="page-header">
+    <h1>{{ form_title }}</h1>
+  </div>
+
+  <form method="post">
+    {% csrf_token %}
+
+    <div class="form-card">
+      <div class="form-section-title">Venue Information</div>
+      <div class="form-group">
+        <label for="name">Venue Name *</label>
+        <input type="text" id="name" name="name" class="form-control" required
+               value="{{ venue.name|default:'' }}" placeholder="e.g. The Grand Arena">
+      </div>
+      <div class="form-group">
+        <label for="venue_type">Venue Type</label>
+        <select id="venue_type" name="venue_type" class="form-control">
+          {% for vt in venue_types %}
+          <option value="{{ vt }}" {% if venue.venue_type == vt %}selected{% endif %}>{{ vt|title }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="description">Description</label>
+        <textarea id="description" name="description" class="form-control" placeholder="Describe the venue…">{{ venue.description|default:'' }}</textarea>
+      </div>
+      <div class="form-group">
+        <label for="capacity">Capacity</label>
+        <input type="number" id="capacity" name="capacity" class="form-control" min="1"
+               value="{{ venue.capacity|default:'' }}" placeholder="Max number of attendees">
+      </div>
+    </div>
+
+    <div class="form-card">
+      <div class="form-section-title">Location</div>
+      <div class="form-group">
+        <label for="address">Address *</label>
+        <input type="text" id="address" name="address" class="form-control" required
+               value="{{ venue.address|default:'' }}" placeholder="Full street address">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="city">City *</label>
+          <input type="text" id="city" name="city" class="form-control" required
+                 value="{{ venue.city|default:'' }}" placeholder="Dublin">
+        </div>
+        <div class="form-group">
+          <label for="country">Country</label>
+          <input type="text" id="country" name="country" class="form-control"
+                 value="{{ venue.country|default:'Ireland' }}">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="latitude">Latitude *</label>
+          <input type="number" id="latitude" name="latitude" class="form-control"
+                 step="0.000001" min="-90" max="90" required
+                 value="{{ venue.latitude|default:'' }}" placeholder="53.3498">
+        </div>
+        <div class="form-group">
+          <label for="longitude">Longitude *</label>
+          <input type="number" id="longitude" name="longitude" class="form-control"
+                 step="0.000001" min="-180" max="180" required
+                 value="{{ venue.longitude|default:'' }}" placeholder="-6.2603">
+        </div>
+      </div>
+      <div style="font-size: 0.8rem; color: var(--muted); margin-top: -0.5rem;">
+        💡 Dublin city centre: 53.3498, -6.2603
+      </div>
+    </div>
+
+    <div class="form-card">
+      <div class="form-section-title">Contact & Media</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="phone">Phone</label>
+          <input type="text" id="phone" name="phone" class="form-control"
+                 value="{{ venue.phone|default:'' }}" placeholder="+353 1 234 5678">
+        </div>
+        <div class="form-group">
+          <label for="website">Website</label>
+          <input type="url" id="website" name="website" class="form-control"
+                 value="{{ venue.website|default:'' }}" placeholder="https://venue.example.com">
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="image_url">Image URL</label>
+        <input type="url" id="image_url" name="image_url" class="form-control"
+               value="{{ venue.image_url|default:'' }}" placeholder="https://…/photo.jpg">
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 0.75rem;">
+      <button type="submit" class="btn btn-primary">
+        {% if action == 'edit' %}💾 Save Changes{% else %}🏟 Add Venue{% endif %}
+      </button>
+      <a href="{% if venue %}{% url 'venue_detail' venue.id %}{% else %}{% url 'venue_list' %}{% endif %}" class="btn btn-secondary">Cancel</a>
+    </div>
+  </form>
+</div>
+
+{% endblock %}

@@ -1,0 +1,117 @@
+{% extends 'core/base.html' %}
+{% block title %}Events — EventPark{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div>
+    <h1>Events</h1>
+    <p>{{ total }} event{{ total|pluralize }} found</p>
+  </div>
+  <a href="{% url 'event_create' %}" class="btn btn-primary">+ Create Event</a>
+</div>
+
+<!-- Search -->
+<form method="get" action="{% url 'event_list' %}">
+  <div class="search-bar">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search events by title, description…">
+    <button type="submit">Search</button>
+  </div>
+
+  <!-- Filters -->
+  <div class="filter-row">
+    <span class="filter-tag">Filter</span>
+    <select name="category" onchange="this.form.submit()">
+      <option value="">All categories</option>
+      {% for cat in categories %}
+      <option value="{{ cat }}" {% if category == cat %}selected{% endif %}>{{ cat|title }}</option>
+      {% endfor %}
+    </select>
+    <select name="status" onchange="this.form.submit()">
+      <option value="">All statuses</option>
+      <option value="published" {% if status_filter == 'published' %}selected{% endif %}>Published</option>
+      <option value="draft" {% if status_filter == 'draft' %}selected{% endif %}>Draft</option>
+      <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Cancelled</option>
+      <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+    </select>
+    <select name="is_free" onchange="this.form.submit()">
+      <option value="">Free / Paid</option>
+      <option value="true" {% if is_free == 'true' %}selected{% endif %}>Free only</option>
+      <option value="false" {% if is_free == 'false' %}selected{% endif %}>Paid only</option>
+    </select>
+    <select name="is_outdoor" onchange="this.form.submit()">
+      <option value="">Indoor / Outdoor</option>
+      <option value="true" {% if is_outdoor == 'true' %}selected{% endif %}>Outdoor</option>
+      <option value="false" {% if is_outdoor == 'false' %}selected{% endif %}>Indoor</option>
+    </select>
+    <input type="text" name="city" value="{{ city }}" placeholder="City…" style="border: 1px solid var(--border); padding: 0.35rem 0.75rem; border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 0.85rem; width: 130px;">
+    {% if q or category or status_filter or is_free or is_outdoor or city %}
+    <a href="{% url 'event_list' %}" style="font-size: 0.8rem; color: var(--accent); text-decoration: none;">✕ Clear</a>
+    {% endif %}
+  </div>
+</form>
+
+{% if error %}
+<div class="error-box">⚠ {{ error }}</div>
+{% endif %}
+
+{% if events %}
+<div class="grid-3">
+  {% for event in events %}
+  <div class="card event-card">
+    <div class="event-card-img">
+      {% if event.image_url %}
+      <img src="{{ event.image_url }}" alt="{{ event.title }}" onerror="this.style.display='none'">
+      {% endif %}
+      <span class="badge badge-{{ event.category|default:'other' }} cat-badge">{{ event.category|title }}</span>
+    </div>
+    <div class="event-card-body">
+      <div class="event-card-title"><a href="{% url 'event_detail' event.id %}">{{ event.title }}</a></div>
+      <div class="event-meta">📅 {{ event.start_date|slice:":10" }}
+        {% if event.end_date %} → {{ event.end_date|slice:":10" }}{% endif %}
+      </div>
+      {% if event.venue %}
+      <div class="event-meta">📍 {{ event.venue.name }}, {{ event.venue.city }}</div>
+      {% endif %}
+      {% if event.crowd_level %}
+      <div style="margin-top: 0.5rem;">
+        <div style="font-size: 0.73rem; color: var(--muted); margin-bottom: 0.2rem;">Crowd: {{ event.crowd_level }} ({{ event.crowd_percentage|floatformat:0 }}%)</div>
+        <div class="crowd-bar-wrap"><div class="crowd-bar {% if event.crowd_percentage < 40 %}low{% elif event.crowd_percentage < 75 %}medium{% else %}high{% endif %}" style="width: {{ event.crowd_percentage|floatformat:0 }}%;"></div></div>
+      </div>
+      {% endif %}
+      <div class="event-card-footer">
+        <div>
+          {% if event.is_free %}
+          <span class="badge badge-free">Free</span>
+          {% elif event.price_min %}
+          <span class="price-tag">{{ event.currency }} {{ event.price_min|floatformat:0 }}</span>
+          {% endif %}
+          {% if event.is_outdoor %}<span style="font-size: 0.75rem; color: var(--muted); margin-left: 0.35rem;">🌿 Outdoor</span>{% endif %}
+        </div>
+        <span class="badge badge-{{ event.status }}">{{ event.status }}</span>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% if total_pages > 1 %}
+<div class="pagination">
+  {% if page > 1 %}<a href="?page={{ page|add:'-1' }}&q={{ q }}&category={{ category }}&status={{ status_filter }}&is_free={{ is_free }}&is_outdoor={{ is_outdoor }}&city={{ city }}">← Prev</a>{% endif %}
+  {% for p in total_pages|rjust:total_pages %}
+  {% endfor %}
+  <span>Page {{ page }} / {{ total_pages }}</span>
+  {% if page < total_pages %}<a href="?page={{ page|add:'1' }}&q={{ q }}&category={{ category }}&status={{ status_filter }}&is_free={{ is_free }}&is_outdoor={{ is_outdoor }}&city={{ city }}">Next →</a>{% endif %}
+</div>
+{% endif %}
+
+{% else %}
+<div class="empty-state">
+  <div class="empty-icon">🎟</div>
+  <h3>No events found</h3>
+  <p>Try adjusting your filters or create a new event</p>
+  <br>
+  <a href="{% url 'event_create' %}" class="btn btn-primary">+ Create Event</a>
+</div>
+{% endif %}
+
+{% endblock %}
