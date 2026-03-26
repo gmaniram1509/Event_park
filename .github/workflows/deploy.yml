@@ -145,7 +145,7 @@ jobs:
           task-definition:            ${{ steps.task-def.outputs.task-definition }}
           service:                    eventpark-django-service
           cluster:                    ${{ env.ECS_CLUSTER }}
-          wait-for-service-stability: true
+          wait-for-service-stability: false
 
   owasp-zap:
     name: OWASP ZAP Security Scan
