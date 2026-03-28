@@ -30,7 +30,7 @@ SECRET_KEY = 'django-insecure-3yj=%_y41t^jd=(7y6%sby1$)wzv!g2wedyt0m^9hf+*jvx^#e
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -46,7 +46,7 @@ INSTALLED_APPS = [
 ]
 
 # EventPark API Configuration
-EVENTPARK_API_BASE = 'http://localhost:8001/api/v1'
+EVENTPARK_API_BASE = os.getenv('EVENTPARK_API_BASE', 'https://qwzj86l90m.execute-api.us-east-1.amazonaws.com/prod/api/v1')
 EVENTPARK_API_KEY = ''  # Optional: set your API key here
 
 MIDDLEWARE = [
@@ -128,3 +128,7 @@ STATIC_URL = 'static/'
 
 TEMPLATES[0]['DIRS'] = []
 TEMPLATES[0]['APP_DIRS'] = True
+
+
+# ── Smart Parking API (Classmate Integration) ─────────────
+PARKING_API_BASE = 'http://SmartParking-env.eba-dwhzmncq.us-east-1.elasticbeanstalk.com'

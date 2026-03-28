@@ -1,115 +1,378 @@
-{% extends 'core/base.html' %}
-{% block title %}Create Account — EventPark{% endblock %}
-{% block content %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Register — EventPark</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #F8FAFC; min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .card {
+      background: white; border: 1px solid #E2E8F0;
+      border-radius: 12px; padding: 40px;
+      width: 100%; max-width: 400px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    }
+    .logo { text-align: center; margin-bottom: 28px; }
+    .logo-icon {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 48px; height: 48px; background: #0D9488;
+      border-radius: 12px; font-size: 22px; margin-bottom: 12px;
+    }
+    .logo h1 { font-size: 20px; font-weight: 700; color: #0F172A; }
+    .logo p { font-size: 13px; color: #64748B; margin-top: 4px; }
+    .field { margin-bottom: 16px; }
+    .field label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px; }
+    .field input {
+      width: 100%; padding: 10px 14px;
+      border: 1px solid #D1D5DB; border-radius: 8px;
+      font-size: 14px; color: #0F172A; outline: none; transition: border-color 0.2s;
+    }
+    .field input:focus { border-color: #0D9488; box-shadow: 0 0 0 3px rgba(13,148,136,0.1); }
+    .field input::placeholder { color: #9CA3AF; }
+    .btn {
+      width: 100%; padding: 11px; background: #0D9488; color: white;
+      border: none; border-radius: 8px; font-size: 14px; font-weight: 600;
+      cursor: pointer; margin-top: 8px; transition: background 0.2s;
+    }
+    .btn:hover { background: #0F766E; }
+    .btn:disabled { background: #94A3B8; cursor: not-allowed; }
+    .btn-secondary {
+      width: 100%; padding: 11px; background: white; color: #0D9488;
+      border: 2px solid #0D9488; border-radius: 8px; font-size: 14px; font-weight: 600;
+      cursor: pointer; margin-top: 8px; transition: all 0.2s;
+    }
+    .btn-secondary:hover { background: #F0FDFA; }
+    .error {
+      display: none; background: #FEF2F2; border: 1px solid #FECACA;
+      color: #DC2626; padding: 10px 12px; border-radius: 8px;
+      font-size: 13px; margin-bottom: 16px;
+    }
+    .error.show { display: block; }
+    .success {
+      display: none; background: #F0FDF4; border: 1px solid #BBF7D0;
+      color: #16A34A; padding: 10px 12px; border-radius: 8px;
+      font-size: 13px; margin-bottom: 16px;
+    }
+    .success.show { display: block; }
+    .info {
+      background: #EFF6FF; border: 1px solid #BFDBFE;
+      color: #1D4ED8; padding: 10px 12px; border-radius: 8px;
+      font-size: 13px; margin-bottom: 16px;
+    }
+    .divider { text-align: center; font-size: 13px; color: #64748B; margin-top: 20px; }
+    .divider a { color: #0D9488; text-decoration: none; font-weight: 600; }
+    .footer { text-align: center; font-size: 12px; color: #94A3B8; margin-top: 20px; }
+    .footer span {
+      background: #FFF7ED; border: 1px solid #FED7AA;
+      color: #C2410C; padding: 2px 8px; border-radius: 4px; font-weight: 600;
+    }
+    /* OTP input styling */
+    .otp-input {
+      letter-spacing: 8px; font-size: 22px; font-weight: 700;
+      text-align: center;
+    }
+    /* Step indicator */
+    .steps {
+      display: flex; justify-content: center; gap: 8px; margin-bottom: 24px;
+    }
+    .step {
+      width: 32px; height: 4px; border-radius: 2px; background: #E2E8F0;
+    }
+    .step.active { background: #0D9488; }
+    .step.done { background: #0D9488; }
+  </style>
+</head>
+<body>
+<div class="card">
 
-<div style="max-width: 450px; margin: 3rem auto; padding: 0 1.5rem;">
-  <div style="text-align: center; margin-bottom: 3rem;">
-    <h1 style="font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; margin-bottom: 0.5rem;">Create Account</h1>
-    <p style="color: var(--muted);">Join to start managing events and venues</p>
+  <div class="logo">
+    <div class="logo-icon">🅿</div>
+    <h1>EventPark</h1>
+    <p id="page-subtitle">Create your account</p>
   </div>
 
-  {% if messages %}
-    <div style="margin-bottom: 1.5rem;">
-      {% for message in messages %}
-        <div class="{% if message.tags %}{{ message.tags }}{% endif %}" style="padding: 0.75rem 1rem; border-radius: 2px; margin-bottom: 0.75rem; background: {% if 'error' in message.tags %}#fee{% else %}#efe{% endif %}; color: {% if 'error' in message.tags %}#c33{% else %}#3a3{% endif %}; border-left: 3px solid {% if 'error' in message.tags %}#e63c1e{% else %}#1a7a4a{% endif %};">
-          {{ message }}
-        </div>
-      {% endfor %}
-    </div>
-  {% endif %}
-
-  <form method="post" style="background: var(--card); padding: 2rem; border-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid var(--border);">
-    {% csrf_token %}
-
-    <div style="margin-bottom: 1.5rem;">
-      <label for="first_name" style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--ink);">Full Name</label>
-      <input 
-        type="text" 
-        id="first_name" 
-        name="first_name" 
-        placeholder="John Doe"
-        style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border); border-radius: 2px; font-size: 1rem; font-family: 'DM Sans', sans-serif; transition: border-color 0.15s, box-shadow 0.15s;"
-        onfocus="this.style.borderColor='var(--accent)'; this.style.boxShadow='0 0 0 3px rgba(230,60,30,0.1)'"
-        onblur="this.style.borderColor='var(--border)'; this.style.boxShadow='none'"
-      />
-    </div>
-
-    <div style="margin-bottom: 1.5rem;">
-      <label for="username" style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--ink);">Username</label>
-      <input 
-        type="text" 
-        id="username" 
-        name="username" 
-        placeholder="johndoe"
-        required
-        style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border); border-radius: 2px; font-size: 1rem; font-family: 'DM Sans', sans-serif; transition: border-color 0.15s, box-shadow 0.15s;"
-        onfocus="this.style.borderColor='var(--accent)'; this.style.boxShadow='0 0 0 3px rgba(230,60,30,0.1)'"
-        onblur="this.style.borderColor='var(--border)'; this.style.boxShadow='none'"
-      />
-      <small style="color: var(--muted); font-size: 0.8rem; margin-top: 0.25rem; display: block;">Only letters, numbers, and @/./+/-/_ are allowed</small>
-    </div>
-
-    <div style="margin-bottom: 1.5rem;">
-      <label for="email" style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--ink);">Email Address</label>
-      <input 
-        type="email" 
-        id="email" 
-        name="email" 
-        placeholder="john@example.com"
-        required
-        style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border); border-radius: 2px; font-size: 1rem; font-family: 'DM Sans', sans-serif; transition: border-color 0.15s, box-shadow 0.15s;"
-        onfocus="this.style.borderColor='var(--accent)'; this.style.boxShadow='0 0 0 3px rgba(230,60,30,0.1)'"
-        onblur="this.style.borderColor='var(--border)'; this.style.boxShadow='none'"
-      />
-    </div>
-
-    <div style="margin-bottom: 1.5rem;">
-      <label for="password" style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--ink);">Password</label>
-      <input 
-        type="password" 
-        id="password" 
-        name="password" 
-        placeholder="At least 6 characters"
-        required
-        style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border); border-radius: 2px; font-size: 1rem; font-family: 'DM Sans', sans-serif; transition: border-color 0.15s, box-shadow 0.15s;"
-        onfocus="this.style.borderColor='var(--accent)'; this.style.boxShadow='0 0 0 3px rgba(230,60,30,0.1)'"
-        onblur="this.style.borderColor='var(--border)'; this.style.boxShadow='none'"
-      />
-    </div>
-
-    <div style="margin-bottom: 2rem;">
-      <label for="password_confirm" style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--ink);">Confirm Password</label>
-      <input 
-        type="password" 
-        id="password_confirm" 
-        name="password_confirm" 
-        placeholder="Repeat password"
-        required
-        style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border); border-radius: 2px; font-size: 1rem; font-family: 'DM Sans', sans-serif; transition: border-color 0.15s, box-shadow 0.15s;"
-        onfocus="this.style.borderColor='var(--accent)'; this.style.boxShadow='0 0 0 3px rgba(230,60,30,0.1)'"
-        onblur="this.style.borderColor='var(--border)'; this.style.boxShadow='none'"
-      />
-    </div>
-
-    <button 
-      type="submit" 
-      style="width: 100%; padding: 0.875rem 1rem; background: var(--accent); color: white; border: none; border-radius: 2px; font-size: 0.95rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; cursor: pointer; transition: background 0.15s, transform 0.15s; font-family: 'DM Sans', sans-serif;"
-      onmouseover="this.style.background='#d42f18'; this.style.transform='translateY(-1px)'"
-      onmouseout="this.style.background='var(--accent)'; this.style.transform='translateY(0)'"
-    >
-      Create Account
-    </button>
-  </form>
-
-  <div style="text-align: center; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border);">
-    <p style="color: var(--muted); margin-bottom: 1rem;">Already have an account?</p>
-    <a href="{% url 'login' %}" style="display: inline-block; padding: 0.75rem 1.5rem; background: var(--accent2); color: white; text-decoration: none; border-radius: 2px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; font-size: 0.875rem; transition: background 0.15s, transform 0.15s;"
-      onmouseover="this.style.background='#1541cc'; this.style.transform='translateY(-1px)'"
-      onmouseout="this.style.background='var(--accent2)'; this.style.transform='translateY(0)'"
-    >
-      Sign In
-    </a>
+  <!-- Step indicator -->
+  <div class="steps">
+    <div class="step active" id="step-1-dot"></div>
+    <div class="step" id="step-2-dot"></div>
   </div>
+
+  <!-- Error and success alerts -->
+  <div class="error" id="error-box"></div>
+  <div class="success" id="success-box"></div>
+
+  <!-- ── STEP 1: Registration Form ── -->
+  <div id="step-1">
+    <form onsubmit="handleRegister(event)">
+      <div class="field">
+        <label>Email Address</label>
+        <input type="email" id="email" placeholder="you@example.com" required/>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="password" placeholder="Min 8 chars, uppercase, number" required/>
+      </div>
+      <div class="field">
+        <label>Confirm Password</label>
+        <input type="password" id="confirm-password" placeholder="Repeat your password" required/>
+      </div>
+      <button type="submit" class="btn" id="btn-register">Create Account</button>
+    </form>
+
+    <div class="divider" style="margin-top:20px;">
+      Already have an account? <a href="/login/">Sign in</a>
+    </div>
+  </div>
+
+  <!-- ── STEP 2: Email Verification ── -->
+  <div id="step-2" style="display:none;">
+    <div class="info">
+      📧 We sent a 6-digit verification code to <strong id="email-display"></strong>
+    </div>
+
+    <form onsubmit="handleVerify(event)">
+      <div class="field">
+        <label>Verification Code</label>
+        <input
+          type="text"
+          id="otp-code"
+          class="otp-input"
+          placeholder="000000"
+          maxlength="6"
+          pattern="[0-9]{6}"
+          inputmode="numeric"
+          required
+        />
+      </div>
+      <button type="submit" class="btn" id="btn-verify">Verify Email</button>
+      <button type="button" class="btn-secondary" onclick="resendCode()">Resend Code</button>
+    </form>
+  </div>
+
+  <div class="footer">Secured by <span>AWS Cognito</span></div>
+
 </div>
 
-{% endblock %}
+<script>
+  const COGNITO_CLIENT_ID = "{{ cognito_client_id }}";
+  const COGNITO_REGION    = "{{ cognito_region }}";
+  let registeredEmail     = '';
+
+  function showError(msg) {
+    const box = document.getElementById('error-box');
+    box.textContent = msg;
+    box.classList.add('show');
+    document.getElementById('success-box').classList.remove('show');
+  }
+
+  function showSuccess(msg) {
+    const box = document.getElementById('success-box');
+    box.textContent = msg;
+    box.classList.add('show');
+    document.getElementById('error-box').classList.remove('show');
+  }
+
+  function clearAlerts() {
+    document.getElementById('error-box').classList.remove('show');
+    document.getElementById('success-box').classList.remove('show');
+  }
+
+  // ── STEP 1: Register with Cognito ────────────────────────
+  async function handleRegister(e) {
+    e.preventDefault();
+    clearAlerts();
+
+    const email    = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const confirm  = document.getElementById('confirm-password').value;
+    const btn      = document.getElementById('btn-register');
+
+    // Validate passwords match
+    if (password !== confirm) {
+      showError('Passwords do not match.');
+      return;
+    }
+
+    // Validate password strength
+    if (password.length < 8) {
+      showError('Password must be at least 8 characters.');
+      return;
+    }
+    if (!/[A-Z]/.test(password)) {
+      showError('Password must contain at least one uppercase letter.');
+      return;
+    }
+    if (!/[0-9]/.test(password)) {
+      showError('Password must contain at least one number.');
+      return;
+    }
+
+    btn.disabled    = true;
+    btn.textContent = 'Creating account...';
+
+    try {
+      const res = await fetch(
+        `https://cognito-idp.${COGNITO_REGION}.amazonaws.com/`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-amz-json-1.1',
+            'X-Amz-Target': 'AWSCognitoIdentityProviderService.SignUp'
+          },
+          body: JSON.stringify({
+            ClientId: COGNITO_CLIENT_ID,
+            Username: email,
+            Password: password,
+            UserAttributes: [
+              { Name: 'email', Value: email }
+            ]
+          })
+        }
+      );
+
+      const data = await res.json();
+
+      if (data.UserSub) {
+        // Success — move to verification step
+        registeredEmail = email;
+        showStep2();
+      } else {
+        const errorMap = {
+          'UsernameExistsException':      'An account with this email already exists.',
+          'InvalidPasswordException':     'Password does not meet requirements.',
+          'InvalidParameterException':    'Please check your details and try again.',
+          'TooManyRequestsException':     'Too many attempts. Please wait.',
+        };
+        showError(errorMap[data.__type] || data.message || 'Registration failed.');
+        btn.disabled    = false;
+        btn.textContent = 'Create Account';
+      }
+
+    } catch (err) {
+      showError('Connection error. Please try again.');
+      btn.disabled    = false;
+      btn.textContent = 'Create Account';
+    }
+  }
+
+  // ── Show Step 2 (Verification) ───────────────────────────
+  function showStep2() {
+    document.getElementById('step-1').style.display = 'none';
+    document.getElementById('step-2').style.display = 'block';
+    document.getElementById('email-display').textContent = registeredEmail;
+    document.getElementById('page-subtitle').textContent = 'Verify your email';
+    document.getElementById('step-1-dot').classList.add('done');
+    document.getElementById('step-2-dot').classList.add('active');
+    clearAlerts();
+    showSuccess('Account created! Please check your email for the verification code.');
+  }
+
+  // ── STEP 2: Verify Email With OTP ───────────────────────
+  async function handleVerify(e) {
+    e.preventDefault();
+    clearAlerts();
+
+    const code = document.getElementById('otp-code').value.trim();
+    const btn  = document.getElementById('btn-verify');
+
+    if (code.length !== 6) {
+      showError('Please enter the 6-digit code from your email.');
+      return;
+    }
+
+    btn.disabled    = true;
+    btn.textContent = 'Verifying...';
+
+    try {
+      const res = await fetch(
+        `https://cognito-idp.${COGNITO_REGION}.amazonaws.com/`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-amz-json-1.1',
+            'X-Amz-Target': 'AWSCognitoIdentityProviderService.ConfirmSignUp'
+          },
+          body: JSON.stringify({
+            ClientId:         COGNITO_CLIENT_ID,
+            Username:         registeredEmail,
+            ConfirmationCode: code
+          })
+        }
+      );
+
+      const data = await res.json();
+
+      if (res.ok && !data.__type) {
+        // Verified successfully
+        showSuccess('✅ Email verified! Redirecting to login...');
+        setTimeout(() => {
+          window.location.href = '/login/';
+        }, 2000);
+      } else {
+        const errorMap = {
+          'CodeMismatchException':    'Incorrect code. Please check your email and try again.',
+          'ExpiredCodeException':     'Code has expired. Please request a new one.',
+          'TooManyFailedAttemptsException': 'Too many failed attempts. Please request a new code.',
+        };
+        showError(errorMap[data.__type] || data.message || 'Verification failed.');
+        btn.disabled    = false;
+        btn.textContent = 'Verify Email';
+      }
+
+    } catch (err) {
+      showError('Connection error. Please try again.');
+      btn.disabled    = false;
+      btn.textContent = 'Verify Email';
+    }
+  }
+
+  // ── Resend Verification Code ─────────────────────────────
+  async function resendCode() {
+    clearAlerts();
+
+    try {
+      const res = await fetch(
+        `https://cognito-idp.${COGNITO_REGION}.amazonaws.com/`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-amz-json-1.1',
+            'X-Amz-Target': 'AWSCognitoIdentityProviderService.ResendConfirmationCode'
+          },
+          body: JSON.stringify({
+            ClientId: COGNITO_CLIENT_ID,
+            Username: registeredEmail
+          })
+        }
+      );
+
+      if (res.ok) {
+        showSuccess('New code sent! Please check your email.');
+      } else {
+        showError('Could not resend code. Please try again.');
+      }
+
+    } catch (err) {
+      showError('Connection error. Please try again.');
+    }
+  }
+
+  // ── Auto-format OTP input ────────────────────────────────
+  document.addEventListener('DOMContentLoaded', () => {
+    const otpInput = document.getElementById('otp-code');
+    if (otpInput) {
+      otpInput.addEventListener('input', (e) => {
+        e.target.value = e.target.value.replace(/[^0-9]/g, '');
+      });
+    }
+  });
+</script>
+
+</body>
+</html>

@@ -1,73 +1,183 @@
-{% extends 'core/base.html' %}
-{% block title %}Login — EventPark{% endblock %}
-{% block content %}
-
-<div style="max-width: 400px; margin: 4rem auto; padding: 0 1.5rem;">
-  <div style="text-align: center; margin-bottom: 3rem;">
-    <h1 style="font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; margin-bottom: 0.5rem;">Welcome Back</h1>
-    <p style="color: var(--muted);">Sign in to manage your events and venues</p>
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login — EventPark</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #F8FAFC; min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .card {
+      background: white; border: 1px solid #E2E8F0;
+      border-radius: 12px; padding: 40px;
+      width: 100%; max-width: 380px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    }
+    .logo { text-align: center; margin-bottom: 28px; }
+    .logo-icon {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 48px; height: 48px; background: #0D9488;
+      border-radius: 12px; font-size: 22px; margin-bottom: 12px;
+    }
+    .logo h1 { font-size: 20px; font-weight: 700; color: #0F172A; }
+    .logo p { font-size: 13px; color: #64748B; margin-top: 4px; }
+    .field { margin-bottom: 16px; }
+    .field label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px; }
+    .field input {
+      width: 100%; padding: 10px 14px;
+      border: 1px solid #D1D5DB; border-radius: 8px;
+      font-size: 14px; color: #0F172A; outline: none; transition: border-color 0.2s;
+    }
+    .field input:focus { border-color: #0D9488; box-shadow: 0 0 0 3px rgba(13,148,136,0.1); }
+    .field input::placeholder { color: #9CA3AF; }
+    .btn {
+      width: 100%; padding: 11px; background: #0D9488; color: white;
+      border: none; border-radius: 8px; font-size: 14px; font-weight: 600;
+      cursor: pointer; margin-top: 8px; transition: background 0.2s;
+    }
+    .btn:hover { background: #0F766E; }
+    .btn:disabled { background: #94A3B8; cursor: not-allowed; }
+    .error {
+      display: none; background: #FEF2F2; border: 1px solid #FECACA;
+      color: #DC2626; padding: 10px 12px; border-radius: 8px;
+      font-size: 13px; margin-bottom: 16px;
+    }
+    .error.show { display: block; }
+    .success {
+      display: none; background: #F0FDF4; border: 1px solid #BBF7D0;
+      color: #16A34A; padding: 10px 12px; border-radius: 8px;
+      font-size: 13px; margin-bottom: 16px;
+    }
+    .success.show { display: block; }
+    .divider { text-align: center; font-size: 13px; color: #64748B; margin-top: 20px; }
+    .divider a { color: #0D9488; text-decoration: none; font-weight: 600; }
+    .footer { text-align: center; font-size: 12px; color: #94A3B8; margin-top: 20px; }
+    .footer span {
+      background: #FFF7ED; border: 1px solid #FED7AA;
+      color: #C2410C; padding: 2px 8px; border-radius: 4px; font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <div class="logo-icon">🅿</div>
+    <h1>EventPark</h1>
+    <p>Sign in to your account</p>
   </div>
-
-  {% if messages %}
-    <div style="margin-bottom: 1.5rem;">
-      {% for message in messages %}
-        <div class="{% if message.tags %}{{ message.tags }}{% endif %}" style="padding: 0.75rem 1rem; border-radius: 2px; margin-bottom: 0.75rem; background: {% if 'error' in message.tags %}#fee{% else %}#efe{% endif %}; color: {% if 'error' in message.tags %}#c33{% else %}#3a3{% endif %}; border-left: 3px solid {% if 'error' in message.tags %}#e63c1e{% else %}#1a7a4a{% endif %};">
-          {{ message }}
-        </div>
-      {% endfor %}
+  <div class="error" id="error-box"></div>
+  <div class="success" id="success-box">✅ Login successful! Redirecting...</div>
+  <form onsubmit="handleLogin(event)">
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="email" placeholder="you@example.com" required/>
     </div>
-  {% endif %}
-
-  <form method="post" style="background: var(--card); padding: 2rem; border-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid var(--border);">
-    {% csrf_token %}
-
-    <div style="margin-bottom: 1.5rem;">
-      <label for="username" style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--ink);">Username</label>
-      <input 
-        type="text" 
-        id="username" 
-        name="username" 
-        placeholder="Enter your username"
-        required
-        style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border); border-radius: 2px; font-size: 1rem; font-family: 'DM Sans', sans-serif; transition: border-color 0.15s, box-shadow 0.15s;"
-        onfocus="this.style.borderColor='var(--accent)'; this.style.boxShadow='0 0 0 3px rgba(230,60,30,0.1)'"
-        onblur="this.style.borderColor='var(--border)'; this.style.boxShadow='none'"
-      />
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="password" placeholder="Enter your password" required/>
     </div>
-
-    <div style="margin-bottom: 2rem;">
-      <label for="password" style="display: block; margin-bottom: 0.5rem; font-weight: 500; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--ink);">Password</label>
-      <input 
-        type="password" 
-        id="password" 
-        name="password" 
-        placeholder="Enter your password"
-        required
-        style="width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--border); border-radius: 2px; font-size: 1rem; font-family: 'DM Sans', sans-serif; transition: border-color 0.15s, box-shadow 0.15s;"
-        onfocus="this.style.borderColor='var(--accent)'; this.style.boxShadow='0 0 0 3px rgba(230,60,30,0.1)'"
-        onblur="this.style.borderColor='var(--border)'; this.style.boxShadow='none'"
-      />
-    </div>
-
-    <button 
-      type="submit" 
-      style="width: 100%; padding: 0.875rem 1rem; background: var(--accent); color: white; border: none; border-radius: 2px; font-size: 0.95rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; cursor: pointer; transition: background 0.15s, transform 0.15s; font-family: 'DM Sans', sans-serif;"
-      onmouseover="this.style.background='#d42f18'; this.style.transform='translateY(-1px)'"
-      onmouseout="this.style.background='var(--accent)'; this.style.transform='translateY(0)'"
-    >
-      Sign In
-    </button>
+    <button type="submit" class="btn" id="btn">Sign In</button>
   </form>
-
-  <div style="text-align: center; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border);">
-    <p style="color: var(--muted); margin-bottom: 1rem;">Don't have an account?</p>
-    <a href="{% url 'register' %}" style="display: inline-block; padding: 0.75rem 1.5rem; background: var(--accent2); color: white; text-decoration: none; border-radius: 2px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; font-size: 0.875rem; transition: background 0.15s, transform 0.15s;"
-      onmouseover="this.style.background='#1541cc'; this.style.transform='translateY(-1px)'"
-      onmouseout="this.style.background='var(--accent2)'; this.style.transform='translateY(0)'"
-    >
-      Create Account
-    </a>
+  <div class="divider" style="margin-top:20px;">
+    Don't have an account? <a href="/register/">Create one</a>
   </div>
+  <div class="footer">Secured by <span>AWS Cognito</span></div>
 </div>
+<script>
+  const COGNITO_CLIENT_ID = "{{ cognito_client_id }}";
+  const COGNITO_REGION    = "{{ cognito_region }}";
 
-{% endblock %}
+  function getCsrfToken() {
+    const match = document.cookie.match(/csrftoken=([^;]+)/);
+    return match ? match[1] : '';
+  }
+
+  async function handleLogin(e) {
+    e.preventDefault();
+    const email    = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const btn      = document.getElementById('btn');
+    const errBox   = document.getElementById('error-box');
+    const okBox    = document.getElementById('success-box');
+
+    errBox.classList.remove('show');
+    okBox.classList.remove('show');
+    btn.disabled = true;
+    btn.textContent = 'Signing in...';
+
+    try {
+      const res = await fetch(
+        `https://cognito-idp.${COGNITO_REGION}.amazonaws.com/`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-amz-json-1.1',
+            'X-Amz-Target': 'AWSCognitoIdentityProviderService.InitiateAuth'
+          },
+          body: JSON.stringify({
+            AuthFlow: 'USER_PASSWORD_AUTH',
+            ClientId: COGNITO_CLIENT_ID,
+            AuthParameters: { USERNAME: email, PASSWORD: password }
+          })
+        }
+      );
+
+      const data = await res.json();
+
+      if (data.AuthenticationResult) {
+        const tokens = data.AuthenticationResult;
+        sessionStorage.setItem('access_token',  tokens.AccessToken);
+        sessionStorage.setItem('id_token',      tokens.IdToken);
+        sessionStorage.setItem('refresh_token', tokens.RefreshToken);
+        sessionStorage.setItem('user_email',    email);
+
+        await fetch('/save-token/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCsrfToken()
+          },
+          body: JSON.stringify({
+            access_token:  tokens.AccessToken,
+            id_token:      tokens.IdToken,
+            refresh_token: tokens.RefreshToken,
+            user_email:    email
+          })
+        });
+
+        okBox.classList.add('show');
+        setTimeout(() => { window.location.href = '/'; }, 1500);
+
+      } else {
+        const errorMap = {
+          'NotAuthorizedException':    'Incorrect email or password.',
+          'UserNotFoundException':     'No account found with this email.',
+          'UserNotConfirmedException': 'Please verify your email first.',
+          'TooManyRequestsException':  'Too many attempts. Please wait.',
+        };
+        errBox.textContent = errorMap[data.__type] || 'Login failed. Please try again.';
+        errBox.classList.add('show');
+        btn.disabled = false;
+        btn.textContent = 'Sign In';
+      }
+    } catch (err) {
+      errBox.textContent = 'Connection error. Please try again.';
+      errBox.classList.add('show');
+      btn.disabled = false;
+      btn.textContent = 'Sign In';
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    if (sessionStorage.getItem('access_token')) {
+      window.location.href = '/';
+    }
+  });
+</script>
+</body>
+</html>

@@ -29,4 +29,4 @@ RUN python manage.py collectstatic --noinput || true
 EXPOSE 8000
 
 # ── Start Django with gunicorn (production server) ────────
-CMD ["gunicorn", "eventpark.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3"]
+CMD ["sh", "-c", "python manage.py migrate --run-syncdb && gunicorn eventpark.wsgi:application --bind 0.0.0.0:8000 --workers 3"]
