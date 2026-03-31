@@ -132,3 +132,11 @@ TEMPLATES[0]['APP_DIRS'] = True
 
 # ── Smart Parking API (Classmate Integration) ─────────────
 PARKING_API_BASE = 'http://SmartParking-env.eba-dwhzmncq.us-east-1.elasticbeanstalk.com'
+
+
+# ngrok HTTPS tunnel support
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.ngrok-free.app",
+    "https://*.ngrok.io",
+    "http://eventpark-django-alb-2110885178.us-east-1.elb.amazonaws.com:8000",
+]

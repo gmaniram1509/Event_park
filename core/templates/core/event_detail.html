@@ -226,7 +226,8 @@
     <script>
       // Venue coordinates from your Event API via Django context
       const VENUE_LAT   = {{ event.venue.latitude }};
-      const VENUE_LNG   = {{ event.venue.longitude }};
+      const VENUE_LNG_RAW = {{ event.venue.longitude }};
+      const VENUE_LNG   = VENUE_LNG_RAW > 0 ? -VENUE_LNG_RAW : VENUE_LNG_RAW;
       const VENUE_NAME  = "{{ event.venue.name|escapejs }}";
       const VENUE_ADDR  = "{{ event.venue.address|escapejs }}, {{ event.venue.city|escapejs }}";
       const EVENT_TITLE = "{{ event.title|escapejs }}";
